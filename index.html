@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyBrowser Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a12;
+  --surface: rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --accent: #00e5ff;
+  --accent2: #ff6b35;
+  --accent3: #a78bfa;
+  --text: #eef2ff;
+  --muted: rgba(238,242,255,0.4);
+  --green: #00e676;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans Bengali', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* BG */
+.bg-mesh {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,229,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(167,139,250,0.07) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 40px);
+}
+
+/* NAVBAR */
+.navbar {
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(6,10,18,0.9);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 1.1em;
+  color: var(--accent); white-space: nowrap;
+}
+.logo span { color: var(--text); }
+.nav-search {
+  flex: 1; display: flex; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 0 12px; gap: 8px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.nav-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+}
+.nav-search input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:13px; padding:8px 0; font-family:inherit;
+}
+.nav-search input::placeholder { color:var(--muted); }
+.nav-go {
+  background: var(--accent); color:#000;
+  border:none; border-radius:8px;
+  padding:6px 14px; font-weight:700; font-size:12px;
+  cursor:pointer; font-family:'Syne',sans-serif;
+  white-space:nowrap; transition:opacity .2s;
+}
+.nav-go:hover { opacity:.85; }
+
+/* TABS */
+.tabs {
+  position: relative; z-index: 1;
+  display: flex; gap: 4px; padding: 12px 16px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tabs::-webkit-scrollbar { display:none; }
+.tab {
+  padding: 8px 18px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer; font-size: 13px;
+  font-family: inherit; white-space: nowrap;
+  transition: all .2s;
+}
+.tab.active {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+.tab:hover:not(.active) { color: var(--text); }
+
+/* PANELS */
+.panel { display:none; position:relative; z-index:1; }
+.panel.active { display:block; }
+
+/* ── HOME PANEL ── */
+.home-hero {
+  text-align:center; padding: 50px 20px 30px;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2);
+  border-radius:100px; padding:4px 14px; font-size:11px;
+  color:var(--accent); margin-bottom:18px; letter-spacing:.5px;
+}
+.hero-badge .pulse {
+  width:6px; height:6px; border-radius:50%; background:var(--green);
+  animation: pulse 2s infinite;
+}
+.home-hero h1 {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(1.8em,7vw,3em); line-height:1.1; margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 30%,var(--accent));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.home-hero p { color:var(--muted); font-size:14px; margin-bottom:28px; }
+.main-search {
+  display:flex; max-width:540px; margin:0 auto 22px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(0,229,255,0.25); border-radius:14px; overflow:hidden;
+  transition: box-shadow .3s;
+}
+.main-search:focus-within { box-shadow:0 0 0 3px rgba(0,229,255,0.1); }
+.main-search input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:15px; padding:14px 18px; font-family:inherit;
+}
+.main-search input::placeholder { color:var(--muted); }
+.main-search button {
+  background:linear-gradient(135deg,var(--accent),#0099cc);
+  color:#000; border:none; padding:14px 22px;
+  font-weight:700; font-size:14px; cursor:pointer;
+  font-family:'Syne',sans-serif; transition:opacity .2s;
+}
+.main-search button:hover { opacity:.85; }
+.eng-row {
+  display:flex; justify-content:center; flex-wrap:wrap;
+  gap:7px; max-width:540px; margin:0 auto 30px; padding:0 10px;
+}
+.eng-btn {
+  padding:6px 15px; border-radius:100px;
+  border:1px solid var(--border); background:var(--surface);
+  color:var(--muted); cursor:pointer; font-size:12px; font-family:inherit;
+  transition:all .2s;
+}
+.eng-btn:hover { border-color:var(--accent); color:var(--text); }
+.eng-btn.active { background:rgba(0,229,255,0.12); border-color:var(--accent); color:var(--accent); font-weight:600; }
+.section-hdr {
+  text-align:center; font-size:11px; color:var(--muted);
+  letter-spacing:2px; text-transform:uppercase;
+  display:flex; align-items:center; gap:10px;
+  padding:0 20px; margin:10px 0 16px;
+}
+.section-hdr::before,.section-hdr::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+.quick-grid {
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:10px; max-width:540px; margin:0 auto; padding:0 16px 30px;
+}
+.qcard {
+  display:flex; align-items:center; gap:12px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:14px; text-decoration:none;
+  color:var(--text); transition:all .25s; position:relative; overflow:hidden;
+}
+.qcard:hover { border-color:rgba(0,229,255,0.3); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+.qicon { font-size:1.6em; width:40px; height:40px; background:rgba(255,255,255,0.06); border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.qtitle { font-size:13px; font-weight:600; }
+.qdesc { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* ── AI PANEL ── */
+.ai-wrap {
+  max-width:600px; margin:0 auto; padding:20px 16px;
+  display:flex; flex-direction:column; height:calc(100vh - 120px);
+}
+.ai-header { text-align:center; margin-bottom:16px; }
+.ai-header h2 { font-family:'Syne',sans-serif; font-size:1.4em; color:var(--accent3); }
+.ai-header p { font-size:12px; color:var(--muted); margin-top:4px; }
+.chat-box {
+  flex:1; overflow-y:auto; padding:16px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; display:flex; flex-direction:column; gap:12px;
+  margin-bottom:14px; min-height:200px;
+}
+.chat-box::-webkit-scrollbar { width:4px; }
+.chat-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
+.msg {
+  display:flex; gap:10px; animation:msgIn .3s ease;
+}
+@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.msg.user { flex-direction:row-reverse; }
+.msg-avatar {
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.msg.ai .msg-avatar { background:rgba(167,139,250,0.2); border:1px solid rgba(167,139,250,0.3); }
+.msg.user .msg-avatar { background:rgba(0,229,255,0.15); border:1px solid rgba(0,229,255,0.3); }
+.msg-bubble {
+  max-width:75%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6;
+}
+.msg.ai .msg-bubble { background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.15); border-radius:4px 12px 12px 12px; }
+.msg.user .msg-bubble { background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.2); border-radius:12px 4px 12px 12px; text-align:right; }
+.typing { display:flex; gap:4px; padding:10px 14px; }
+.typing span { width:6px; height:6px; border-radius:50%; background:var(--accent3); animation:blink 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay:.2s; }
+.typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
+.chat-input-row { display:flex; gap:8px; }
+.chat-input {
+  flex:1; background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; padding:12px 15px; color:var(--text);
+  font-size:14px; font-family:inherit; outline:none; resize:none;
+  transition:border-color .2s;
+}
+.chat-input:focus { border-color:var(--accent3); }
+.chat-input::placeholder { color:var(--muted); }
+.send-btn {
+  background:linear-gradient(135deg,var(--accent3),#7c3aed);
+  color:#fff; border:none; border-radius:10px;
+  padding:12px 20px; font-weight:700; cursor:pointer;
+  font-family:'Syne',sans-serif; font-size:14px;
+  transition:opacity .2s;
+}
+.send-btn:hover { opacity:.85; }
+.send-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+/* ── WEATHER PANEL ── */
+.weather-wrap { max-width:540px; margin:0 auto; padding:24px 16px; }
+.weather-search {
+  display:flex; gap:8px; margin-bottom:20px;
+}
+.weather-search input {
+  flex:1; background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; padding:12px 16px; color:var(--text);
+  font-size:14px; font-family:inherit; outline:none;
+  transition:border-color .2s;
+}
+.weather-search input:focus { border-color:var(--accent2); }
+.weather-search input::placeholder { color:var(--muted); }
+.weather-btn {
+  background:var(--accent2); color:#fff; border:none;
+  border-radius:10px; padding:12px 20px; font-weight:700;
+  cursor:pointer; font-family:'Syne',sans-serif; font-size:14px;
+  transition:opacity .2s;
+}
+.weather-btn:hover { opacity:.85; }
+.weather-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:24px; text-align:center;
+  display:none; animation:fadeUp .4s ease;
+}
+.weather-card.show { display:block; }
+.w-city { font-size:1.1em; color:var(--muted); margin-bottom:4px; }
+.w-icon { font-size:4em; margin:10px 0; }
+.w-temp { font-family:'Syne',sans-serif; font-size:3em; font-weight:800; color:var(--accent2); }
+.w-desc { color:var(--muted); font-size:14px; margin:8px 0 16px; text-transform:capitalize; }
+.w-details {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px;
+}
+.w-detail {
+  background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px;
+}
+.w-detail-val { font-weight:700; font-size:15px; color:var(--text); }
+.w-detail-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+.w-loading { text-align:center; color:var(--muted); padding:30px; display:none; }
+
+/* ── NEWS PANEL ── */
+.news-wrap { max-width:600px; margin:0 auto; padding:20px 16px; }
+.news-cats {
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;
+}
+.news-cat {
+  padding:7px 16px; border-radius:100px;
+  border:1px solid var(--border); background:var(--surface);
+  color:var(--muted); cursor:pointer; font-size:12px; font-family:inherit;
+  transition:all .2s;
+}
+.news-cat.active { background:rgba(255,107,53,0.15); border-color:var(--accent2); color:var(--accent2); }
+.news-list { display:flex; flex-direction:column; gap:12px; }
+.news-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:16px; cursor:pointer;
+  transition:all .2s; text-decoration:none; display:block; color:var(--text);
+  animation:fadeUp .4s ease both;
+}
+.news-card:hover { border-color:rgba(255,107,53,0.3); transform:translateX(4px); }
+.news-source {
+  font-size:11px; color:var(--accent2); font-weight:600;
+  text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;
+  display:flex; align-items:center; gap:6px;
+}
+.news-title { font-size:14px; font-weight:600; line-height:1.5; margin-bottom:6px; }
+.news-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+.news-loading { text-align:center; color:var(--muted); padding:40px; }
+.news-dot { width:5px; height:5px; border-radius:50%; background:var(--accent2); display:inline-block; }
+
+/* ANIMATIONS */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.4)} 50%{opacity:.8;box-shadow:0 0 0 5px rgba(0,230,118,0)} }
+
+.home-hero,.main-search,.eng-row,.quick-grid { animation:fadeUp .5s ease both; }
+.main-search { animation-delay:.1s; }
+.eng-row { animation-delay:.15s; }
+.quick-grid { animation-delay:.2s; }
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo">My<span>Browser</span></div>
+  <div class="nav-search">
+    <span style="color:var(--muted);font-size:13px">🔍</span>
+    <input id="navInput" type="text" placeholder="সার্চ বা URL..."
+      onkeypress="if(event.key==='Enter')navGo()"/>
+  </div>
+  <button class="nav-go" onclick="navGo()">যাও →</button>
+</nav>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('home',this)">🏠 হোম</button>
+  <button class="tab" onclick="showPanel('ai',this)">🤖 AI চ্যাট</button>
+  <button class="tab" onclick="showPanel('weather',this)">🌤️ আবহাওয়া</button>
+  <button class="tab" onclick="showPanel('news',this)">📰 নিউজ</button>
+</div>
+
+<!-- HOME -->
+<div id="panel-home" class="panel active">
+  <div class="home-hero">
+    <div class="hero-badge"><div class="pulse"></div> লাইভ · প্রো ভার্সন</div>
+    <h1>স্মার্ট ব্রাউজার</h1>
+    <p>AI চ্যাট · আবহাওয়া · নিউজ · সার্চ — সব এক জায়গায়</p>
+    <div class="main-search">
+      <input id="mainInput" type="text" placeholder="কী খুঁজছেন লিখুন..."
+        onkeypress="if(event.key==='Enter')doSearch()"/>
+      <button onclick="doSearch()">খুঁজুন</button>
+    </div>
+    <div class="eng-row">
+      <button class="eng-btn active" onclick="setEng('google',this)">🔍 Google</button>
+      <button class="eng-btn" onclick="setEng('youtube',this)">▶️ YouTube</button>
+      <button class="eng-btn" onclick="setEng('pdf',this)">📄 PDF</button>
+      <button class="eng-btn" onclick="setEng('wiki',this)">📖 Wikipedia</button>
+      <button class="eng-btn" onclick="setEng('bangla',this)">🇧🇩 বাংলা</button>
+      <button class="eng-btn" onclick="setEng('scholar',this)">🎓 Research</button>
+    </div>
+  </div>
+  <div class="section-hdr">দ্রুত যান</div>
+  <div class="quick-grid">
+    <a class="qcard" href="https://youtube.com" target="_blank"><div class="qicon">▶️</div><div><div class="qtitle">YouTube</div><div class="qdesc">ভিডিও দেখুন</div></div></a>
+    <a class="qcard" href="https://facebook.com" target="_blank"><div class="qicon">👥</div><div><div class="qtitle">Facebook</div><div class="qdesc">সোশ্যাল মিডিয়া</div></div></a>
+    <a class="qcard" href="https://drive.google.com" target="_blank"><div class="qicon">📁</div><div><div class="qtitle">Google Drive</div><div class="qdesc">ডকুমেন্ট দেখুন</div></div></a>
+    <a class="qcard" href="https://docs.google.com" target="_blank"><div class="qicon">📝</div><div><div class="qtitle">Google Docs</div><div class="qdesc">ডকুমেন্ট তৈরি</div></div></a>
+    <a class="qcard" href="https://scholar.google.com" target="_blank"><div class="qicon">🎓</div><div><div class="qtitle">Scholar</div><div class="qdesc">Research Paper</div></div></a>
+    <a class="qcard" href="https://translate.google.com" target="_blank"><div class="qicon">🌍</div><div><div class="qtitle">Translate</div><div class="qdesc">ভাষা অনুবাদ</div></div></a>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<div id="panel-ai" class="panel">
+  <div class="ai-wrap">
+    <div class="ai-header">
+      <h2>🤖 AI সহকারী</h2>
+      <p>যেকোনো প্রশ্ন করুন — বাংলায় উত্তর পাবেন</p>
+    </div>
+    <div class="chat-box" id="chatBox">
+      <div class="msg ai">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">চায়া রয়েছ কেন কি কবি ক, তুই কইলেই তো আমি কমু হ
+          😊</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="1"
+        placeholder="প্রশ্ন লিখুন..."
+        onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMsg()">পাঠান</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER -->
+<div id="panel-weather" class="panel">
+  <div class="weather-wrap">
+    <div style="text-align:center;margin-bottom:20px">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.4em;color:var(--accent2)">🌤️ আবহাওয়া</h2>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">যেকোনো শহরের আবহাওয়া দেখুন</p>
+    </div>
+    <div class="weather-search">
+      <input id="cityInput" type="text" placeholder="শহরের নাম লিখুন... যেমন: Dhaka"
+        onkeypress="if(event.key==='Enter')getWeather()"/>
+      <button class="weather-btn" onclick="getWeather()">দেখুন</button>
+    </div>
+    <div class="w-loading" id="wLoading">⏳ লোড হচ্ছে...</div>
+    <div class="weather-card" id="weatherCard">
+      <div class="w-city" id="wCity"></div>
+      <div class="w-icon" id="wIcon"></div>
+      <div class="w-temp" id="wTemp"></div>
+      <div class="w-desc" id="wDesc"></div>
+      <div class="w-details">
+        <div class="w-detail"><div class="w-detail-val" id="wHumidity"></div><div class="w-detail-lbl">আর্দ্রতা</div></div>
+        <div class="w-detail"><div class="w-detail-val" id="wWind"></div><div class="w-detail-lbl">বাতাস</div></div>
+        <div class="w-detail"><div class="w-detail-val" id="wFeels"></div><div class="w-detail-lbl">অনুভূতি</div></div>
+      </div>
+    </div>
+    <!-- Quick city buttons -->
+    <div style="margin-top:20px">
+      <div class="section-hdr">জনপ্রিয় শহর</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+        <button class="eng-btn" onclick="quickCity('Dhaka')">🇧🇩 ঢাকা</button>
+        <button class="eng-btn" onclick="quickCity('Chittagong')">🏙️ চট্টগ্রাম</button>
+        <button class="eng-btn" onclick="quickCity('Sylhet')">🍵 সিলেট</button>
+        <button class="eng-btn" onclick="quickCity('Rajshahi')">🌳 রাজশাহী</button>
+        <button class="eng-btn" onclick="quickCity('London')">🇬🇧 London</button>
+        <button class="eng-btn" onclick="quickCity('Dubai')">🇦🇪 Dubai</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEWS -->
+<div id="panel-news" class="panel">
+  <div class="news-wrap">
+    <div style="text-align:center;margin-bottom:16px">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.4em;color:var(--accent2)">📰 সর্বশেষ নিউজ</h2>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">বিশ্বের সেরা খবর একনজরে</p>
+    </div>
+    <div class="news-cats">
+      <button class="news-cat active" onclick="loadNews('general',this)">🌍 সাধারণ</button>
+      <button class="news-cat" onclick="loadNews('technology',this)">💻 প্রযুক্তি</button>
+      <button class="news-cat" onclick="loadNews('sports',this)">⚽ খেলাধুলা</button>
+      <button class="news-cat" onclick="loadNews('business',this)">💼 ব্যবসা</button>
+      <button class="news-cat" onclick="loadNews('science',this)">🔬 বিজ্ঞান</button>
+    </div>
+    <div id="newsList" class="news-list">
+      <div class="news-loading">⏳ নিউজ লোড হচ্ছে...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TAB SYSTEM ──
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'news' && !newsLoaded) loadNews('general', document.querySelector('.news-cat'));
+  if (id === 'weather' && !weatherInitialized) { weatherInitialized=true; }
+}
+
+// ── SEARCH ──
+let eng = 'google';
+const engines = {
+  google:  q => `https://www.google.com/search?q=${q}`,
+  youtube: q => `https://www.youtube.com/results?search_query=${q}`,
+  pdf:     q => `https://www.google.com/search?q=${q}+filetype:pdf`,
+  wiki:    q => `https://bn.wikipedia.org/w/index.php?search=${q}`,
+  bangla:  q => `https://www.google.com/search?q=${q}&lr=lang_bn`,
+  scholar: q => `https://scholar.google.com/scholar?q=${q}`
+};
+function setEng(e, btn) {
+  eng = e;
+  document.querySelectorAll('.eng-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function doSearch() {
+  const q = document.getElementById('mainInput').value.trim();
+  if (!q) return;
+  window.open(engines[eng](encodeURIComponent(q)), '_blank');
+}
+function navGo() {
+  let v = document.getElementById('navInput').value.trim();
+  if (!v) return;
+  if (v.includes('.') && !v.includes(' ')) {
+    if (!v.startsWith('http')) v = 'https://' + v;
+    window.open(v, '_blank');
+  } else {
+    window.open(engines.google(encodeURIComponent(v)), '_blank');
+  }
+}
+
+// ── AI CHAT ──
+const chatBox = document.getElementById('chatBox');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+
+async function sendMsg() {
+  const msg = chatInput.value.trim();
+  if (!msg || sendBtn.disabled) return;
+  addMsg(msg, 'user');
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  const typingEl = addTyping();
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDVKO-n1iFyI9EvzI_fTk7DnfCkNSPP9Cw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'তুমি একটি বাংলা AI সহকারী। সবসময় বাংলায় উত্তর দাও। সংক্ষিপ্ত ও সহায়ক থাকো।\n\nUser: ' + msg }] }]
+      })
+    });
+    const data = await res.json();
+    typingEl.remove();
+    if (data?.error) {
+      addMsg('❌ API Error: ' + (data.error.message || JSON.stringify(data.error)), 'ai');
+    } else {
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'দুঃখিত, উত্তর পাওয়া যায়নি।';
+      addMsg(reply, 'ai');
+    }
+  } catch(e) {
+    typingEl.remove();
+    addMsg('❌ সংযোগ সমস্যা: ' + e.message, 'ai');
+  }
+  sendBtn.disabled = false;
+}
+
+function addMsg(text, role) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return div;
+}
+
+// ── WEATHER ──
+let weatherInitialized = false;
+const weatherIcons = {
+  'clear sky':'☀️','few clouds':'⛅','scattered clouds':'🌤️',
+  'broken clouds':'☁️','overcast clouds':'☁️','light rain':'🌧️',
+  'moderate rain':'🌧️','heavy rain':'⛈️','thunderstorm':'⛈️',
+  'snow':'❄️','mist':'🌫️','haze':'🌫️','fog':'🌫️','drizzle':'🌦️'
+};
+
+async function getWeather(city) {
+  city = city || document.getElementById('cityInput').value.trim();
+  if (!city) return;
+  document.getElementById('cityInput').value = city;
+  document.getElementById('wLoading').style.display = 'block';
+  document.getElementById('weatherCard').classList.remove('show');
+  try {
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=bd5e378503939ddaee76f12ad7a97608&units=metric`);
+    const d = await res.json();
+    if (d.cod !== 200) throw new Error('City not found');
+    const desc = d.weather[0].description.toLowerCase();
+    document.getElementById('wCity').textContent = `${d.name}, ${d.sys.country}`;
+    document.getElementById('wIcon').textContent = weatherIcons[desc] || '🌡️';
+    document.getElementById('wTemp').textContent = `${Math.round(d.main.temp)}°C`;
+    document.getElementById('wDesc').textContent = d.weather[0].description;
+    document.getElementById('wHumidity').textContent = `${d.main.humidity}%`;
+    document.getElementById('wWind').textContent = `${Math.round(d.wind.speed*3.6)} km/h`;
+    document.getElementById('wFeels').textContent = `${Math.round(d.main.feels_like)}°C`;
+    document.getElementById('weatherCard').classList.add('show');
+  } catch(e) {
+    alert('শহর খুঁজে পাওয়া যায়নি। আবার চেষ্টা করুন।');
+  }
+  document.getElementById('wLoading').style.display = 'none';
+}
+
+function quickCity(city) { getWeather(city); }
+
+// ── NEWS ──
+let newsLoaded = false;
+const newsTopics = {
+  general: ['বিশ্ব রাজনীতি','আন্তর্জাতিক সংবাদ','বাংলাদেশ আজ','বিশ্ব খবর'],
+  technology: ['AI প্রযুক্তি ২০২৫','নতুন স্মার্টফোন','সাইবার নিরাপত্তা','টেক নিউজ'],
+  sports: ['ক্রিকেট বিশ্বকাপ','ফুটবল লিগ','খেলাধুলা আজ','IPL ২০২৫'],
+  business: ['শেয়ার বাজার','অর্থনীতি','ব্যবসা বাণিজ্য','বিনিয়োগ'],
+  science: ['মহাকাশ গবেষণা','নতুন আবিষ্কার','বিজ্ঞান প্রযুক্তি','চিকিৎসা বিজ্ঞান']
+};
+
+const fakeNews = {
+  general: [
+    {title:'বাংলাদেশে নতুন অর্থনৈতিক সংস্কার ঘোষণা', desc:'সরকার দেশের অর্থনৈতিক উন্নয়নে নতুন পরিকল্পনা গ্রহণ করেছে।', source:'bdnews24', url:'https://bdnews24.com'},
+    {title:'জলবায়ু পরিবর্তন মোকাবেলায় বিশ্ব নেতাদের বৈঠক', desc:'জাতিসংঘে জলবায়ু সংকট নিয়ে জরুরি আলোচনা শুরু হয়েছে।', source:'BBC Bangla', url:'https://bbc.com/bengali'},
+    {title:'ঢাকায় নতুন মেট্রোরেল রুট উদ্বোধন', desc:'রাজধানীর যানজট নিরসনে নতুন মেট্রো লাইন চালু হলো।', source:'Prothom Alo', url:'https://prothomalo.com'},
+    {title:'বিশ্বব্যাংকের বাংলাদেশে ঋণ অনুমোদন', desc:'উন্নয়ন প্রকল্পের জন্য বিশ্বব্যাংক বড় অঙ্কের ঋণ দিচ্ছে।', source:'Daily Star', url:'https://thedailystar.net'},
+  ],
+  technology: [
+    {title:'ChatGPT-এর নতুন ভার্সন লঞ্চ', desc:'OpenAI তাদের AI মডেলের উন্নত সংস্করণ বাজারে আনল।', source:'TechCrunch', url:'https://techcrunch.com'},
+    {title:'Samsung Galaxy S25 Ultra বাংলাদেশে আসছে', desc:'বহুল প্রতীক্ষিত ফ্ল্যাগশিপ ফোন শীঘ্রই পাওয়া যাবে।', source:'Tech Today', url:'https://google.com/search?q=samsung+galaxy+s25'},
+    {title:'AI দিয়ে বাংলা ভাষা শেখার নতুন অ্যাপ', desc:'স্থানীয় স্টার্টআপের তৈরি AI অ্যাপ সারা দেশে ছড়িয়ে পড়ছে।', source:'Tech Bangla', url:'https://google.com'},
+    {title:'সাইবার হামলা থেকে সুরক্ষার নতুন পদ্ধতি', desc:'বিশেষজ্ঞরা অনলাইন নিরাপত্তার নতুন টিপস শেয়ার করেছেন।', source:'Security News', url:'https://google.com/search?q=cybersecurity+2025'},
+  ],
+  sports: [
+    {title:'বাংলাদেশ ক্রিকেট দলের দুর্দান্ত জয়', desc:'টাইগাররা সিরিজের গুরুত্বপূর্ণ ম্যাচে বড় জয় পেয়েছে।', source:'Cricinfo', url:'https://espncricinfo.com'},
+    {title:'IPL 2025: রোমাঞ্চকর ম্যাচে শেষ বলে জয়', desc:'ইন্ডিয়ান প্রিমিয়ার লিগে অসাধারণ নাটকীয় মুহূর্ত।', source:'Cricbuzz', url:'https://cricbuzz.com'},
+    {title:'ফুটবল বিশ্বকাপ ২০২৬ প্রস্তুতি শুরু', desc:'বিশ্বকাপের আয়োজক দেশগুলো প্রস্তুতি তুঙ্গে।', source:'FIFA News', url:'https://fifa.com'},
+    {title:'সাকিব আল হাসান নতুন রেকর্ড গড়লেন', desc:'অলরাউন্ডার সাকিব আন্তর্জাতিক ক্রিকেটে নতুন মাইলফলক স্পর্শ করলেন।', source:'Daily Sports', url:'https://google.com/search?q=shakib+al+hasan'},
+  ],
+  business: [
+    {title:'ডলারের বিপরীতে টাকার মান বৃদ্ধি', desc:'দেশের বৈদেশিক মুদ্রার রিজার্ভ বাড়ছে।', source:'Financial Express', url:'https://thefinancialexpress.com.bd'},
+    {title:'গার্মেন্টস রপ্তানিতে রেকর্ড আয়', desc:'পোশাক খাতে এই মাসে সর্বোচ্চ রপ্তানি আয় হয়েছে।', source:'Business Standard', url:'https://businessstandard.com'},
+    {title:'স্টার্টআপ ইকোসিস্টেম বাংলাদেশে জমে উঠছে', desc:'তরুণ উদ্যোক্তারা দেশে নতুন ব্যবসার সুযোগ তৈরি করছে।', source:'Startup BD', url:'https://google.com/search?q=bangladesh+startup'},
+    {title:'রেমিট্যান্স প্রবাহ বেড়েছে ২০%', desc:'প্রবাসী বাংলাদেশিরা রেকর্ড পরিমাণ অর্থ পাঠাচ্ছেন।', source:'Bangladesh Bank', url:'https://bb.org.bd'},
+  ],
+  science: [
+    {title:'মঙ্গলে পানির নতুন প্রমাণ আবিষ্কার', desc:'নাসার রোভার মঙ্গল গ্রহে তরল পানির চিহ্ন খুঁজে পেয়েছে।', source:'NASA', url:'https://nasa.gov'},
+    {title:'ক্যান্সারের নতুন ওষুধ আবিষ্কার', desc:'বিজ্ঞানীরা ক্যান্সার চিকিৎসায় যুগান্তকারী আবিষ্কার করেছেন।', source:'Science Daily', url:'https://sciencedaily.com'},
+    {title:'বাংলাদেশের বিজ্ঞানীর বৈশ্বিক পুরস্কার', desc:'বাংলাদেশি গবেষক আন্তর্জাতিক বিজ্ঞান পুরস্কার পেলেন।', source:'Science BD', url:'https://google.com/search?q=bangladesh+science+award'},
+    {title:'AI দিয়ে রোগ নির্ণয় ৯৫% নির্ভুল', desc:'কৃত্রিম বুদ্ধিমত্তা চিকিৎসা বিজ্ঞানে বিপ্লব আনছে।', source:'Health Tech', url:'https://google.com/search?q=AI+medical+diagnosis'},
+  ]
+};
+
+function loadNews(cat, btn) {
+  newsLoaded = true;
+  document.querySelectorAll('.news-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const list = document.getElementById('newsList');
+  list.innerHTML = '<div class="news-loading">⏳ লোড হচ্ছে...</div>';
+  setTimeout(() => {
+    const items = fakeNews[cat] || fakeNews.general;
+    list.innerHTML = items.map((n, i) => `
+      <a class="news-card" href="${n.url}" target="_blank" style="animation-delay:${i*0.08}s">
+        <div class="news-source"><span class="news-dot"></span>${n.source}</div>
+        <div class="news-title">${n.title}</div>
+        <div class="news-desc">${n.desc}</div>
+      </a>
+    `).join('');
+  }, 600);
+}
+
+// Auto-load news on start
+window.addEventListener('load', () => {
+  loadNews('general', document.querySelector('.news-cat'));
+});
+</script>
+</body>
+</html>
